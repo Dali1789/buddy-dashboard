@@ -22,7 +22,7 @@ export type TaskPriority = 'low' | 'medium' | 'high' | 'urgent';
 
 export interface KanbanTask {
   id: string;
-  notionId: string;
+  notionId?: string;
   title: string;
   description?: string;
   status: NotionTaskStatus;
@@ -70,7 +70,7 @@ export interface ActivityEntry {
 // Notes Types (Synced with Notion - filtered by "Buddy" tag)
 export interface DashboardNote {
   id: string;
-  notionId: string;
+  notionId?: string;
   content: string;
   tags: string[];
   createdAt: string;
@@ -121,7 +121,7 @@ export type MeetingPlace = 'Conference Room' | 'Zoom' | 'Google Meet' | 'Other';
 
 export interface CalendarEvent {
   id: string;
-  notionId: string;
+  notionId?: string;
   name: string;
   date: string;
   priority: 'High' | 'Medium' | 'Low';
