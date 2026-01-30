@@ -1,0 +1,24 @@
+# Moltbot Dashboard - Docker Compose
+# Füge diesen Service zu deinem bestehenden docker-compose.yml hinzu
+# oder starte separat mit: docker-compose -f docker-compose.yml up -d
+
+services:
+  dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: moltbot-dashboard
+    restart: unless-stopped
+    ports:
+      - '3000:3000'
+    environment:
+      - DATABASE_URL=postgresql://moltbot:ttzdN0gfgYlbZ4969teJyfdg0TBVMqWZ@moltbot_postrtres:5432/moltbot
+    networks:
+      - moltbot-network
+    depends_on:
+      - moltbot-postgres
+
+networks:
+  moltbot-network:
+    external: true
+    name: moltbot_default  # Anpassen falls anders benannt
