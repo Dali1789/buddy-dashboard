@@ -134,7 +134,8 @@ CREATE TABLE IF NOT EXISTS kanban_tasks (
     bereich VARCHAR(100),
     -- Kategorie/Bereich
 
-    project_id UUID REFERENCES projects(id),
+    project_id UUID,
+    -- REFERENCES projects(id) - Foreign key hinzufügen nachdem projects Tabelle existiert
 
     metadata JSONB,
     -- Zusätzliche Daten aus Notion
