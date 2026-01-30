@@ -1,16 +1,11 @@
 # Moltbot Dashboard - Production Dockerfile
 FROM node:20-alpine AS base
 
-# Dependencies
-FROM base AS deps
-WORKDIR /app
-COPY package.json package-lock.json ./
-RUN npm ci --only=production
-
-# Builder
+# Builder (install ALL deps including devDependencies for build)
 FROM base AS builder
 WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
+COPY package.json package-lock.json ./
+RUN npm ci
 COPY . .
 RUN npm run build
 
