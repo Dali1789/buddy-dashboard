@@ -20,6 +20,9 @@ export interface BotState {
 export type NotionTaskStatus = 'inbox' | 'To-do' | 'In Bearbeitung' | 'in Prüfen' | 'Done';
 export type TaskPriority = 'low' | 'medium' | 'high' | 'urgent';
 
+// Dashboard column IDs (includes virtual 'overdue' column)
+export type KanbanColumnId = NotionTaskStatus | 'overdue';
+
 export interface KanbanTask {
   id: string;
   notionId?: string;
@@ -38,12 +41,12 @@ export interface KanbanTask {
   completedAt?: string;
 }
 
-// Kanban Column Mapping
-export const KANBAN_COLUMNS: { id: NotionTaskStatus; label: string }[] = [
+// Kanban Column Mapping - OVERDUE replaces IN REVIEW
+export const KANBAN_COLUMNS: { id: KanbanColumnId; label: string; isVirtual?: boolean }[] = [
   { id: 'inbox', label: 'INBOX' },
   { id: 'To-do', label: 'TO DO' },
   { id: 'In Bearbeitung', label: 'IN PROGRESS' },
-  { id: 'in Prüfen', label: 'IN REVIEW' },
+  { id: 'overdue', label: 'OVERDUE', isVirtual: true },
   { id: 'Done', label: 'DONE' },
 ];
 

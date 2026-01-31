@@ -1,12 +1,32 @@
 'use client';
 
 import { useState } from 'react';
-import { KanbanTask, NotionTaskStatus, KANBAN_COLUMNS } from '@/types';
+import { KanbanTask, NotionTaskStatus, KanbanColumnId, KANBAN_COLUMNS } from '@/types';
 
 interface KanbanBoardProps {
   tasks: KanbanTask[];
   onTaskMove?: (taskId: string, newStatus: NotionTaskStatus) => void;
   onTaskClick?: (task: KanbanTask) => void;
+}
+
+// Check if a task is overdue
+function isOverdue(task: KanbanTask): boolean {
+  if (!task.dueDate || task.status === 'Done') return false;
+  const dueDate = new Date(task.dueDate);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  dueDate.setHours(0, 0, 0, 0);
+  return dueDate < today;
+}
+
+// Get tasks for a specific column
+function getTasksForColumn(tasks: KanbanTask[], columnId: KanbanColumnId): KanbanTask[] {
+  if (columnId === 'overdue') {
+    // Virtual column: all overdue tasks (not Done)
+    return tasks.filter(isOverdue);
+  }
+  // Regular column: match status, exclude overdue tasks (they go to OVERDUE column)
+  return tasks.filter((task) => task.status === columnId && !isOverdue(task));
 }
 
 function getPriorityColor(wichtig: boolean, dringend: boolean): string {
@@ -95,22 +115,31 @@ function KanbanColumn({
   tasks,
   onTaskClick,
 }: {
-  column: { id: NotionTaskStatus; label: string };
+  column: { id: KanbanColumnId; label: string; isVirtual?: boolean };
   tasks: KanbanTask[];
   onTaskClick?: (task: KanbanTask) => void;
 }) {
-  const columnTasks = tasks.filter((task) => task.status === column.id);
+  const columnTasks = getTasksForColumn(tasks, column.id);
   const isDone = column.id === 'Done';
+  const isOverdueColumn = column.id === 'overdue';
 
   return (
     <div className="shrink-0 w-60">
-      <div className={`rounded-lg p-3 ${isDone ? 'bg-zinc-800/30' : 'bg-zinc-800/50'}`}>
+      <div className={`rounded-lg p-3 ${
+        isDone ? 'bg-zinc-800/30' :
+        isOverdueColumn ? 'bg-red-900/20 border border-red-900/30' :
+        'bg-zinc-800/50'
+      }`}>
         {/* Column Header */}
         <div className="flex items-center justify-between mb-3">
-          <h4 className="text-xs font-medium text-zinc-500 uppercase tracking-wide">
+          <h4 className={`text-xs font-medium uppercase tracking-wide ${
+            isOverdueColumn ? 'text-red-400' : 'text-zinc-500'
+          }`}>
             {column.label}
           </h4>
-          <span className="text-xs text-zinc-600 bg-zinc-700/50 px-1.5 py-0.5 rounded">
+          <span className={`text-xs px-1.5 py-0.5 rounded ${
+            isOverdueColumn ? 'text-red-400 bg-red-900/30' : 'text-zinc-600 bg-zinc-700/50'
+          }`}>
             {columnTasks.length}
           </span>
         </div>
@@ -126,8 +155,10 @@ function KanbanColumn({
               />
             ))
           ) : (
-            <div className="text-xs text-zinc-600 text-center py-4">
-              No tasks
+            <div className={`text-xs text-center py-4 ${
+              isOverdueColumn ? 'text-red-400/50' : 'text-zinc-600'
+            }`}>
+              {isOverdueColumn ? 'All good!' : 'No tasks'}
             </div>
           )}
         </div>
