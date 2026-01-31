@@ -116,7 +116,7 @@ export default function ActivityLog({ entries }: ActivityLogProps) {
       <div className="flex items-center justify-between mb-4">
         <div>
           <h3 className="text-sm font-medium text-zinc-400">Activity Log</h3>
-          <p className="text-xs text-zinc-500">A chronological record of Moltbot&apos;s actions</p>
+          <p className="text-xs text-zinc-500">A chronological record of Buddy&apos;s actions</p>
         </div>
         <span className="text-xs text-zinc-500 bg-zinc-800 px-2 py-1 rounded">
           {entries.length} entries

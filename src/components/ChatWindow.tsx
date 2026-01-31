@@ -49,7 +49,7 @@ export default function ChatWindow() {
         const botMessage: ChatMessage = {
           id: (Date.now() + 1).toString(),
           role: 'assistant',
-          content: 'Chat-Integration kommt bald! Nutze vorerst Telegram (@MoltbotAI) für Gespräche.',
+          content: 'Chat-Integration kommt bald! Nutze vorerst Telegram für Gespräche.',
           timestamp: new Date(),
         };
         setMessages((prev) => [...prev, botMessage]);
@@ -71,11 +71,11 @@ export default function ChatWindow() {
   // Render iframe version (embedded OpenClaw WebChat)
   if (useIframe) {
     return (
-      <div className="card p-4 flex flex-col flex-1 min-h-[400px]">
+      <div className="card p-4 flex flex-col flex-1 min-h-[600px]">
         {/* Header */}
         <div className="flex items-center justify-between mb-3">
           <div>
-            <h3 className="text-sm font-medium text-zinc-400">Chat mit Moltbot</h3>
+            <h3 className="text-sm font-medium text-zinc-400">Chat mit Buddy</h3>
             <p className="text-xs text-zinc-500">Direkte Kommunikation via OpenClaw</p>
           </div>
           <div className="flex items-center gap-2">
@@ -101,7 +101,7 @@ export default function ChatWindow() {
           <iframe
             src={`${OPENCLAW_CHAT_URL}/?token=${OPENCLAW_TOKEN}`}
             className="w-full h-full border-0"
-            title="Moltbot Chat"
+            title="Buddy Chat"
             allow="microphone"
           />
         </div>
@@ -111,11 +111,11 @@ export default function ChatWindow() {
 
   // Render minimal chat version
   return (
-    <div className="card p-4 flex flex-col flex-1 min-h-[400px]">
+    <div className="card p-4 flex flex-col flex-1 min-h-[600px]">
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <div>
-          <h3 className="text-sm font-medium text-zinc-400">Chat mit Moltbot</h3>
+          <h3 className="text-sm font-medium text-zinc-400">Chat mit Buddy</h3>
           <p className="text-xs text-zinc-500">Quick Messages</p>
         </div>
         <button
@@ -133,7 +133,7 @@ export default function ChatWindow() {
             <div className="text-center">
               <div className="text-3xl mb-2">💬</div>
               <p className="text-xs text-zinc-500">
-                Sende eine Nachricht an Moltbot
+                Sende eine Nachricht an Buddy
               </p>
               <p className="text-xs text-zinc-600 mt-1">
                 Oder nutze{' '}
@@ -169,7 +169,7 @@ export default function ChatWindow() {
         {isLoading && (
           <div className="flex justify-start">
             <div className="bg-zinc-800 rounded-lg px-3 py-2 text-sm text-zinc-400 border border-zinc-700">
-              <span className="animate-pulse">Moltbot denkt nach...</span>
+              <span className="animate-pulse">Buddy denkt nach...</span>
             </div>
           </div>
         )}
@@ -183,7 +183,7 @@ export default function ChatWindow() {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Nachricht an Moltbot..."
+          placeholder="Nachricht an Buddy..."
           disabled={isLoading}
           className="flex-1 bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-zinc-600 disabled:opacity-50"
         />

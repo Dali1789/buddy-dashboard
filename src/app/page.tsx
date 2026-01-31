@@ -218,7 +218,7 @@ export default function Home() {
       <header className="border-b border-zinc-800 px-6 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-6">
-            <h1 className="text-xl font-semibold">Moltbot</h1>
+            <h1 className="text-xl font-semibold">Buddy</h1>
             <Navigation activeTab={activeTab} onTabChange={setActiveTab} />
           </div>
           <LastSync timestamp={lastSync} isLoading={isLoading} onRefresh={fetchData} />

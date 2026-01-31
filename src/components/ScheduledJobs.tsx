@@ -92,7 +92,7 @@ export default function ScheduledJobs({ jobs }: ScheduledJobsProps) {
   const disabledJobs = jobs.filter((j) => !j.enabled);
 
   return (
-    <div className="card p-4 flex flex-col" style={{ maxHeight: '500px' }}>
+    <div className="card p-4 flex flex-col" style={{ maxHeight: '750px' }}>
       <h3 className="text-sm font-medium text-zinc-400 mb-4 shrink-0">Scheduled Deliverables</h3>
 
       <div className="space-y-2 overflow-y-auto flex-1">

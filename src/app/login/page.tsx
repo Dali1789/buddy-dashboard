@@ -41,7 +41,7 @@ function LoginForm() {
       {/* Header */}
       <div className="text-center mb-8">
         <div className="text-4xl mb-3">🤖</div>
-        <h1 className="text-xl font-semibold text-white">Moltbot Dashboard</h1>
+        <h1 className="text-xl font-semibold text-white">Buddy Dashboard</h1>
         <p className="text-sm text-zinc-500 mt-1">Bitte Passwort eingeben</p>
       </div>
 
@@ -80,7 +80,7 @@ function LoginFallback() {
     <div className="card p-8">
       <div className="text-center mb-8">
         <div className="text-4xl mb-3">🤖</div>
-        <h1 className="text-xl font-semibold text-white">Moltbot Dashboard</h1>
+        <h1 className="text-xl font-semibold text-white">Buddy Dashboard</h1>
         <p className="text-sm text-zinc-500 mt-1">Laden...</p>
       </div>
     </div>

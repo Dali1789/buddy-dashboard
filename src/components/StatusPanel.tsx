@@ -101,7 +101,7 @@ export default function StatusPanel({ botState }: StatusPanelProps) {
       </div>
 
       {/* Bot Name */}
-      <h2 className="text-xl font-semibold text-white">Moltbot</h2>
+      <h2 className="text-xl font-semibold text-white">Buddy</h2>
 
       {/* Status Badge */}
       <div className={`flex items-center gap-2 ${config.color}`}>

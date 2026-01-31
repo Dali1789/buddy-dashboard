@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
 // Dashboard password - set via environment variable
-const DASHBOARD_PASSWORD = process.env.DASHBOARD_PASSWORD || 'moltbot2026';
+const DASHBOARD_PASSWORD = process.env.DASHBOARD_PASSWORD || 'buddy2026';
 
 export async function POST(request: Request) {
   try {

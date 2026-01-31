@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Moltbot Dashboard",
-  description: "Moltbot AI Assistant Dashboard",
+  title: "Buddy Dashboard",
+  description: "Buddy AI Assistant Dashboard",
 };
 
 export default function RootLayout({

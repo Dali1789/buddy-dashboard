@@ -29,7 +29,7 @@ function NoteCard({ note }: { note: DashboardNote }) {
         {note.seenByBot ? (
           <span className="text-green-400 flex items-center gap-1">
             <span className="w-1.5 h-1.5 rounded-full bg-green-400" />
-            seen by Moltbot
+            seen by Buddy
           </span>
         ) : (
           <span className="text-yellow-400 flex items-center gap-1">
@@ -43,7 +43,7 @@ function NoteCard({ note }: { note: DashboardNote }) {
       {note.response && (
         <div className="mt-3 pt-3 border-t border-zinc-700">
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-xs text-zinc-500">Moltbot:</span>
+            <span className="text-xs text-zinc-500">Buddy:</span>
           </div>
           <p className="text-sm text-zinc-400 italic">{note.response}</p>
         </div>
@@ -79,10 +79,10 @@ export default function NotesSection({ notes, onAddNote }: NotesSectionProps) {
     <div className="card p-4">
       {/* Header */}
       <div className="mb-1">
-        <h3 className="text-sm font-medium text-zinc-400">Notes for Moltbot</h3>
+        <h3 className="text-sm font-medium text-zinc-400">Notes for Buddy</h3>
       </div>
       <p className="text-xs text-zinc-500 mb-4">
-        Moltbot checks on every heartbeat
+        Buddy checks on every heartbeat
       </p>
 
       {/* Input */}
@@ -92,7 +92,7 @@ export default function NotesSection({ notes, onAddNote }: NotesSectionProps) {
           value={newNote}
           onChange={(e) => setNewNote(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Leave a note for Moltbot..."
+          placeholder="Leave a note for Buddy..."
           disabled={isSubmitting}
           className="flex-1 bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-zinc-600 disabled:opacity-50"
         />
@@ -113,7 +113,7 @@ export default function NotesSection({ notes, onAddNote }: NotesSectionProps) {
             .map((note) => <NoteCard key={note.id} note={note} />)
         ) : (
           <div className="text-xs text-zinc-600 text-center py-4">
-            No notes yet. Leave a message for Moltbot!
+            No notes yet. Leave a message for Buddy!
           </div>
         )}
       </div>
