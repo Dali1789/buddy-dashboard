@@ -1,36 +1,51 @@
-import WebSocket from 'ws';
-
 // ============================================
-// OpenClaw Gateway WebSocket Client
+// OpenClaw Gateway HTTP Client
 // ============================================
-// Kommuniziert mit OpenClaw's Gateway via WebSocket
-// Protocol: JSON frames {type, id, method, params}
-// Requires handshake: First message must be 'connect'
+// Kommuniziert mit OpenClaw's Gateway via HTTP /tools/invoke API
+// Einfacher und zuverlässiger als WebSocket
 // ============================================
 
 // Use IP address directly since container hostname DNS doesn't work cross-network
-// Can be overridden via OPENCLAW_WS_URL env var
-const OPENCLAW_WS_URL = process.env.OPENCLAW_WS_URL || 'ws://10.0.5.2:18789';
-// Gateway token for authentication - should be set via OPENCLAW_GATEWAY_TOKEN env var
-// TODO: Move to Coolify environment variables
+const OPENCLAW_URL = process.env.OPENCLAW_URL || 'http://10.0.5.2:18789';
+// Gateway token for authentication
 const OPENCLAW_TOKEN = process.env.OPENCLAW_GATEWAY_TOKEN || 'd405662297a58df924f621a74a491cc48abbcc421550402ef6cb2fe9fc397b94';
 
-interface OpenClawRequest {
-  type: 'req';
+interface OpenClawJob {
   id: string;
-  method: string;
-  params?: Record<string, unknown>;
+  agentId: string;
+  name: string;
+  enabled: boolean;
+  schedule: {
+    kind: string;
+    expr: string;
+    tz: string;
+  };
+  sessionTarget: string;
+  wakeMode: string;
+  payload: {
+    kind: string;
+    text: string;
+  };
+  state?: {
+    nextRunAtMs?: number;
+    lastRunAtMs?: number;
+    lastStatus?: string;
+    lastDurationMs?: number;
+  };
 }
 
-interface OpenClawResponse {
-  type: 'res';
-  id: string;
-  ok: boolean;
-  payload?: unknown;
-  error?: { code: number; message: string };
+interface OpenClawSession {
+  key: string;
+  kind: string;
+  channel: string;
+  displayName: string;
+  updatedAt: number;
+  sessionId: string;
+  model: string;
 }
 
-interface CronJob {
+// Exported types for sync-service
+export interface CronJob {
   id: string;
   name: string;
   cron: string;
@@ -43,113 +58,46 @@ interface CronJob {
   lastStatus?: string;
 }
 
-interface SchedulerStatus {
+export interface SchedulerStatus {
   enabled: boolean;
   jobs: CronJob[];
   nextWake?: string;
 }
 
-// Generate unique request ID
-let requestCounter = 0;
-function generateId(): string {
-  return `dashboard-${Date.now()}-${++requestCounter}`;
+// Invoke a tool via HTTP API
+async function invokeTool<T>(tool: string, args?: Record<string, unknown>): Promise<T> {
+  const response = await fetch(`${OPENCLAW_URL}/tools/invoke`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${OPENCLAW_TOKEN}`,
+    },
+    body: JSON.stringify({ tool, args }),
+  });
+
+  const data = await response.json();
+
+  if (!data.ok) {
+    throw new Error(data.error?.message || 'Tool invocation failed');
+  }
+
+  return data.result?.details || data.result;
 }
 
-// Send a request to OpenClaw with proper handshake
-async function sendRequest<T>(method: string, params?: Record<string, unknown>): Promise<T> {
-  return new Promise((resolve, reject) => {
-    const ws = new WebSocket(OPENCLAW_WS_URL);
-    const connectId = generateId();
-    const requestId = generateId();
-    let connected = false;
-    let responded = false;
-
-    // Timeout after 10 seconds
-    const timeout = setTimeout(() => {
-      if (!responded) {
-        responded = true;
-        ws.close();
-        reject(new Error('OpenClaw request timeout'));
-      }
-    }, 10000);
-
-    ws.on('open', () => {
-      // First: send connect handshake
-      const connectRequest: OpenClawRequest = {
-        type: 'req',
-        id: connectId,
-        method: 'connect',
-        params: {
-          role: 'operator',
-          scopes: ['operator.read'],
-          auth: OPENCLAW_TOKEN ? { token: OPENCLAW_TOKEN } : undefined,
-          clientMeta: {
-            name: 'buddy-dashboard',
-            version: '1.0.0',
-          },
-        },
-      };
-      ws.send(JSON.stringify(connectRequest));
-    });
-
-    ws.on('message', (data: WebSocket.Data) => {
-      try {
-        const message = JSON.parse(data.toString()) as OpenClawResponse;
-
-        // Handle connect response
-        if (message.type === 'res' && message.id === connectId) {
-          if (message.ok) {
-            connected = true;
-            // Now send the actual request
-            const request: OpenClawRequest = {
-              type: 'req',
-              id: requestId,
-              method,
-              params,
-            };
-            ws.send(JSON.stringify(request));
-          } else {
-            responded = true;
-            clearTimeout(timeout);
-            ws.close();
-            reject(new Error(message.error?.message || 'OpenClaw connect failed'));
-          }
-          return;
-        }
-
-        // Handle actual request response
-        if (message.type === 'res' && message.id === requestId && connected) {
-          responded = true;
-          clearTimeout(timeout);
-          ws.close();
-
-          if (message.ok) {
-            resolve(message.payload as T);
-          } else {
-            reject(new Error(message.error?.message || 'OpenClaw request failed'));
-          }
-        }
-      } catch {
-        // Ignore parse errors for other messages
-      }
-    });
-
-    ws.on('error', (error) => {
-      if (!responded) {
-        responded = true;
-        clearTimeout(timeout);
-        reject(error);
-      }
-    });
-
-    ws.on('close', () => {
-      if (!responded) {
-        responded = true;
-        clearTimeout(timeout);
-        reject(new Error('WebSocket closed before response'));
-      }
-    });
-  });
+// Transform OpenClaw job format to our format
+function transformJob(job: OpenClawJob): CronJob {
+  return {
+    id: job.id,
+    name: job.name,
+    cron: job.schedule.expr,
+    enabled: job.enabled,
+    systemText: job.payload?.text,
+    agent: job.agentId,
+    wakeMode: job.wakeMode,
+    nextRun: job.state?.nextRunAtMs ? new Date(job.state.nextRunAtMs).toISOString() : undefined,
+    lastRun: job.state?.lastRunAtMs ? new Date(job.state.lastRunAtMs).toISOString() : undefined,
+    lastStatus: job.state?.lastStatus,
+  };
 }
 
 // ============================================
@@ -158,8 +106,8 @@ async function sendRequest<T>(method: string, params?: Record<string, unknown>):
 
 export async function getCronJobs(): Promise<CronJob[]> {
   try {
-    const result = await sendRequest<{ jobs: CronJob[] }>('cron.list');
-    return result.jobs || [];
+    const result = await invokeTool<{ jobs: OpenClawJob[] }>('cron', { action: 'list' });
+    return (result.jobs || []).map(transformJob);
   } catch (error) {
     console.error('Failed to get cron jobs:', error);
     return [];
@@ -168,17 +116,28 @@ export async function getCronJobs(): Promise<CronJob[]> {
 
 export async function getSchedulerStatus(): Promise<SchedulerStatus | null> {
   try {
-    const result = await sendRequest<SchedulerStatus>('cron.status');
-    return result;
+    const jobs = await getCronJobs();
+
+    // Find next scheduled run
+    const nextRuns = jobs
+      .filter(j => j.enabled && j.nextRun)
+      .map(j => new Date(j.nextRun!).getTime())
+      .sort((a, b) => a - b);
+
+    return {
+      enabled: jobs.some(j => j.enabled),
+      jobs,
+      nextWake: nextRuns[0] ? new Date(nextRuns[0]).toISOString() : undefined,
+    };
   } catch (error) {
     console.error('Failed to get scheduler status:', error);
     return null;
   }
 }
 
-export async function getSessionStatus(): Promise<{ sessions: unknown[] } | null> {
+export async function getSessionStatus(): Promise<{ sessions: OpenClawSession[] } | null> {
   try {
-    const result = await sendRequest<{ sessions: unknown[] }>('sessions.list');
+    const result = await invokeTool<{ sessions: OpenClawSession[] }>('sessions_list');
     return result;
   } catch (error) {
     console.error('Failed to get sessions:', error);
@@ -214,5 +173,3 @@ export async function getBotStatus(): Promise<{
     };
   }
 }
-
-export type { CronJob, SchedulerStatus };
