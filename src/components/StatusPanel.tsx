@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { BotStatus, BotState, SubAgent } from '@/types';
 
 interface StatusPanelProps {
@@ -48,6 +49,22 @@ export default function StatusPanel({ botState }: StatusPanelProps) {
   const config = STATUS_CONFIG[botState.status];
   const isActive = botState.status === 'working' || botState.status === 'thinking';
   const hasSubAgents = botState.subAgents && botState.subAgents.length > 0;
+
+  // Hydration-safe time display - only render on client
+  const [timeAgo, setTimeAgo] = useState<string>('--');
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    setTimeAgo(formatTimeAgo(botState.lastActivity));
+
+    // Update every minute
+    const interval = setInterval(() => {
+      setTimeAgo(formatTimeAgo(botState.lastActivity));
+    }, 60000);
+
+    return () => clearInterval(interval);
+  }, [botState.lastActivity]);
 
   return (
     <div className="card p-6 flex flex-col items-center gap-4 min-w-[200px]">
@@ -101,7 +118,7 @@ export default function StatusPanel({ botState }: StatusPanelProps) {
 
       {/* Last Activity */}
       <div className="text-xs text-zinc-500">
-        Last activity: {formatTimeAgo(botState.lastActivity)}
+        Last activity: {timeAgo}
       </div>
 
       {/* Sub-Agents List */}
@@ -117,8 +134,8 @@ export default function StatusPanel({ botState }: StatusPanelProps) {
       )}
 
       {/* Uptime */}
-      <div className="text-xs text-zinc-600 mt-2">
-        Uptime: {Math.floor(botState.uptime / 3600)}h {Math.floor((botState.uptime % 3600) / 60)}m
+      <div className="text-xs text-zinc-600 mt-2" suppressHydrationWarning>
+        Uptime: {mounted ? `${Math.floor(botState.uptime / 3600)}h ${Math.floor((botState.uptime % 3600) / 60)}m` : '--'}
       </div>
     </div>
   );
