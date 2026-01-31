@@ -1,15 +1,23 @@
 import { NextResponse } from 'next/server';
 import { jobsDB } from '@/lib/db';
+import { syncJobs } from '@/lib/sync-service';
 
 // ============================================
-// SCHEDULED JOBS API - PostgreSQL Integration
+// SCHEDULED JOBS API - Live OpenClaw Sync
 // ============================================
-// GET: Dashboard zeigt konfigurierte Jobs an
+// GET: Sync von OpenClaw, dann aus PostgreSQL lesen
 // PUT: Jobs aktivieren/deaktivieren
+// POST: Job-Status nach Ausführung updaten
 // ============================================
 
 export async function GET() {
   try {
+    // Sync from OpenClaw first (non-blocking if it fails)
+    await syncJobs().catch((err) => {
+      console.warn('[Jobs API] Sync failed, using cached data:', err.message);
+    });
+
+    // Return jobs from PostgreSQL
     const jobs = await jobsDB.getAll();
     return NextResponse.json(jobs);
   } catch (error) {

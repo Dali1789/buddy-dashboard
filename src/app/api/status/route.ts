@@ -1,12 +1,14 @@
 import { NextResponse } from 'next/server';
 import { botStatusDB } from '@/lib/db';
 import { BotState } from '@/types';
+import { syncBotStatus } from '@/lib/sync-service';
 
 // ============================================
-// BOT STATUS API - PostgreSQL Integration
+// BOT STATUS API - Live OpenClaw Sync
 // ============================================
-// GET: Dashboard ruft aktuellen Bot-Status ab
+// GET: Sync von OpenClaw, dann aus PostgreSQL lesen
 // POST: Moltbot aktualisiert seinen Status (bei Heartbeat)
+// PUT: Heartbeat endpoint
 // ============================================
 
 // Fallback state wenn DB nicht erreichbar
@@ -20,6 +22,11 @@ const OFFLINE_STATE: BotState = {
 
 export async function GET() {
   try {
+    // Sync from OpenClaw first (non-blocking if it fails)
+    await syncBotStatus().catch((err) => {
+      console.warn('[Status API] Sync failed, using cached data:', err.message);
+    });
+
     const botState = await botStatusDB.get();
 
     if (!botState) {
