@@ -59,7 +59,11 @@ export type ActivityType =
   | 'alert'
   | 'error'
   | 'note_seen'
-  | 'notion_sync';
+  | 'notion_sync'
+  | 'job_start'
+  | 'job_end'
+  | 'thinking'
+  | 'action';
 
 export interface ActivityEntry {
   id: string;
@@ -67,6 +71,8 @@ export interface ActivityEntry {
   message: string;
   details?: string;
   timestamp: string;
+  sessionId?: string; // Groups activities by heartbeat/job execution
+  jobName?: string;   // Name of the cron job that triggered this
 }
 
 // Notes Types (Local PostgreSQL - checked by Moltbot on heartbeat)

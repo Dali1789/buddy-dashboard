@@ -111,9 +111,18 @@ export default function StatusPanel({ botState }: StatusPanelProps) {
 
       {/* Current Task Badge */}
       <div className="w-full">
-        <div className="bg-zinc-800 rounded-lg px-3 py-2 text-sm text-center">
-          {botState.currentTask || 'Ready for tasks'}
-        </div>
+        {botState.currentTask ? (
+          // Active task - show with working indicator
+          <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg px-3 py-2 text-sm text-center text-blue-400">
+            <span className="inline-block w-1.5 h-1.5 bg-blue-400 rounded-full mr-2 animate-pulse" />
+            {botState.currentTask}
+          </div>
+        ) : (
+          // No active task - show "Finished: Ready for tasks"
+          <div className="bg-green-500/10 border border-green-500/30 rounded-lg px-3 py-2 text-sm text-center text-green-400">
+            {botState.status === 'idle' ? 'Finished: Ready for tasks' : 'Ready for tasks'}
+          </div>
+        )}
       </div>
 
       {/* Last Activity */}

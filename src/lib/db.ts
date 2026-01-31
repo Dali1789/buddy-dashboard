@@ -181,6 +181,8 @@ export const activityDB = {
     limit?: number;
     offset?: number;
     type?: ActivityType;
+    sessionId?: string;
+    date?: string; // YYYY-MM-DD format
   }): Promise<{ entries: ActivityEntry[]; total: number }> {
     const conditions: string[] = [];
     const values: unknown[] = [];
@@ -189,6 +191,16 @@ export const activityDB = {
     if (params?.type) {
       conditions.push(`type = $${paramIndex++}`);
       values.push(params.type);
+    }
+
+    if (params?.sessionId) {
+      conditions.push(`session_id = $${paramIndex++}`);
+      values.push(params.sessionId);
+    }
+
+    if (params?.date) {
+      conditions.push(`DATE(timestamp) = $${paramIndex++}`);
+      values.push(params.date);
     }
 
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
@@ -211,8 +223,11 @@ export const activityDB = {
       message: string;
       details: string | null;
       timestamp: Date;
+      session_id: string | null;
+      job_name: string | null;
     }>(
-      `SELECT * FROM activity_log ${whereClause}
+      `SELECT id, type, message, details, timestamp, session_id, job_name
+       FROM activity_log ${whereClause}
        ORDER BY timestamp DESC
        LIMIT $${paramIndex++} OFFSET $${paramIndex}`,
       values
@@ -225,6 +240,8 @@ export const activityDB = {
         message: row.message,
         details: row.details || undefined,
         timestamp: row.timestamp.toISOString(),
+        sessionId: row.session_id || undefined,
+        jobName: row.job_name || undefined,
       })),
       total,
     };
@@ -235,6 +252,8 @@ export const activityDB = {
     message: string;
     details?: string;
     metadata?: unknown;
+    sessionId?: string;
+    jobName?: string;
   }): Promise<ActivityEntry> {
     const { rows } = await query<{
       id: string;
@@ -242,11 +261,20 @@ export const activityDB = {
       message: string;
       details: string | null;
       timestamp: Date;
+      session_id: string | null;
+      job_name: string | null;
     }>(
-      `INSERT INTO activity_log (type, message, details, metadata)
-       VALUES ($1, $2, $3, $4)
-       RETURNING *`,
-      [entry.type, entry.message, entry.details, entry.metadata ? JSON.stringify(entry.metadata) : null]
+      `INSERT INTO activity_log (type, message, details, metadata, session_id, job_name)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       RETURNING id, type, message, details, timestamp, session_id, job_name`,
+      [
+        entry.type,
+        entry.message,
+        entry.details || null,
+        entry.metadata ? JSON.stringify(entry.metadata) : null,
+        entry.sessionId || null,
+        entry.jobName || null,
+      ]
     );
 
     const row = rows[0];
@@ -256,6 +284,82 @@ export const activityDB = {
       message: row.message,
       details: row.details || undefined,
       timestamp: row.timestamp.toISOString(),
+      sessionId: row.session_id || undefined,
+      jobName: row.job_name || undefined,
+    };
+  },
+
+  // Get activities grouped by session
+  async getBySession(sessionId: string): Promise<ActivityEntry[]> {
+    const { rows } = await query<{
+      id: string;
+      type: ActivityType;
+      message: string;
+      details: string | null;
+      timestamp: Date;
+      session_id: string | null;
+      job_name: string | null;
+    }>(
+      `SELECT id, type, message, details, timestamp, session_id, job_name
+       FROM activity_log
+       WHERE session_id = $1
+       ORDER BY timestamp ASC`,
+      [sessionId]
+    );
+
+    return rows.map((row) => ({
+      id: row.id,
+      type: row.type,
+      message: row.message,
+      details: row.details || undefined,
+      timestamp: row.timestamp.toISOString(),
+      sessionId: row.session_id || undefined,
+      jobName: row.job_name || undefined,
+    }));
+  },
+
+  // Get unique sessions with their first and last activity
+  async getSessions(params?: { limit?: number; offset?: number }): Promise<{
+    sessions: { sessionId: string; jobName: string | null; startTime: string; endTime: string; entryCount: number }[];
+    total: number;
+  }> {
+    const limit = params?.limit || 20;
+    const offset = params?.offset || 0;
+
+    const countResult = await query<{ count: string }>(
+      `SELECT COUNT(DISTINCT session_id) FROM activity_log WHERE session_id IS NOT NULL`
+    );
+    const total = parseInt(countResult.rows[0].count);
+
+    const { rows } = await query<{
+      session_id: string;
+      job_name: string | null;
+      start_time: Date;
+      end_time: Date;
+      entry_count: string;
+    }>(
+      `SELECT session_id,
+              MAX(job_name) as job_name,
+              MIN(timestamp) as start_time,
+              MAX(timestamp) as end_time,
+              COUNT(*) as entry_count
+       FROM activity_log
+       WHERE session_id IS NOT NULL
+       GROUP BY session_id
+       ORDER BY start_time DESC
+       LIMIT $1 OFFSET $2`,
+      [limit, offset]
+    );
+
+    return {
+      sessions: rows.map((row) => ({
+        sessionId: row.session_id,
+        jobName: row.job_name,
+        startTime: row.start_time.toISOString(),
+        endTime: row.end_time.toISOString(),
+        entryCount: parseInt(row.entry_count),
+      })),
+      total,
     };
   },
 };

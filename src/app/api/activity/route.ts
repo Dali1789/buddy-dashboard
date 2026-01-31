@@ -6,7 +6,12 @@ import { ActivityType } from '@/types';
 // ACTIVITY LOG API - PostgreSQL Integration
 // ============================================
 // GET: Dashboard zeigt chronologisches Aktivitätsprotokoll
-// POST: Moltbot oder Dashboard loggen neue Aktivitäten
+// POST: Buddy loggt neue Aktivitäten (mit Session-Tracking)
+//
+// Session-Tracking:
+// - Jeder Heartbeat/Job generiert eine sessionId
+// - Alle Aktivitäten während dieser Ausführung bekommen dieselbe sessionId
+// - Ermöglicht Gruppierung nach "was hat Buddy in dieser Session gemacht"
 // ============================================
 
 export async function GET(request: Request) {
@@ -15,11 +20,15 @@ export async function GET(request: Request) {
     const limit = parseInt(searchParams.get('limit') || '50');
     const offset = parseInt(searchParams.get('offset') || '0');
     const type = searchParams.get('type') as ActivityType | null;
+    const sessionId = searchParams.get('sessionId');
+    const date = searchParams.get('date'); // YYYY-MM-DD format
 
     const result = await activityDB.getAll({
       limit,
       offset,
       type: type || undefined,
+      sessionId: sessionId || undefined,
+      date: date || undefined,
     });
 
     return NextResponse.json({
@@ -49,11 +58,19 @@ export async function POST(request: Request) {
       );
     }
 
+    // Generate sessionId if not provided and this is a job_start
+    let sessionId = body.sessionId;
+    if (body.type === 'job_start' && !sessionId) {
+      sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    }
+
     const newEntry = await activityDB.log({
       type: body.type,
       message: body.message,
       details: body.details,
       metadata: body.metadata,
+      sessionId: sessionId,
+      jobName: body.jobName,
     });
 
     return NextResponse.json(newEntry, { status: 201 });

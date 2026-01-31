@@ -6,6 +6,10 @@ import { query } from './db';
 // ============================================
 // Synchronisiert Live-Daten von OpenClaw WebSocket
 // in die PostgreSQL Datenbank für das Dashboard
+//
+// WICHTIG: Der Bot-Status wird NICHT überschrieben wenn:
+// - Der Bot gerade aktiv eine Task ausführt (currentTask gesetzt)
+// - Das letzte Update weniger als 5 Sekunden her ist
 // ============================================
 
 // Parse frequency from cron expression
@@ -99,26 +103,54 @@ export async function syncJobs(): Promise<{ synced: number; error?: string }> {
 }
 
 // Sync bot status from OpenClaw to PostgreSQL
+// WICHTIG: Überschreibt Status nur wenn der Bot nicht aktiv arbeitet
 export async function syncBotStatus(): Promise<{ status: string; error?: string }> {
   try {
+    // First, check current status in DB
+    const { rows: currentRows } = await query<{
+      status: string;
+      current_task: string | null;
+      updated_at: Date;
+    }>('SELECT status, current_task, updated_at FROM bot_status WHERE id = 1');
+
+    const currentStatus = currentRows[0];
+
+    // Don't override if bot is actively working on something
+    if (currentStatus?.current_task) {
+      console.log(`[Sync] Bot is working on: ${currentStatus.current_task} - not overriding`);
+      return { status: currentStatus.status };
+    }
+
+    // Don't override if last update was less than 10 seconds ago (bot might be updating)
+    if (currentStatus?.updated_at) {
+      const timeSinceUpdate = Date.now() - new Date(currentStatus.updated_at).getTime();
+      if (timeSinceUpdate < 10000 && currentStatus.status !== 'offline') {
+        console.log(`[Sync] Recent update (${timeSinceUpdate}ms ago) - not overriding`);
+        return { status: currentStatus.status };
+      }
+    }
+
+    // Get OpenClaw status
     const status = await getBotStatus();
 
     // Determine bot status based on OpenClaw state
     let botStatus: string;
     if (status.activeSessions > 0) {
-      botStatus = 'working';
+      // Active session but no currentTask means thinking/processing
+      botStatus = 'thinking';
     } else if (status.schedulerEnabled) {
       botStatus = 'idle';
     } else {
       botStatus = 'sleeping';
     }
 
+    // Update status in DB (but not currentTask - that's controlled by the bot)
     await query(
       `UPDATE bot_status SET
          status = $1,
          last_heartbeat = NOW(),
          updated_at = NOW()
-       WHERE id = 1`,
+       WHERE id = 1 AND (current_task IS NULL OR current_task = '')`,
       [botStatus]
     );
 
