@@ -1,0 +1,112 @@
+{
+  "master": {
+    "tasks": [
+      {
+        "id": 1,
+        "title": "Dashboard UI Komponenten",
+        "description": "Alle UI-Komponenten für das Buddy Dashboard erstellen",
+        "status": "done",
+        "priority": "high",
+        "details": "Implementiert: StatusPanel mit Emoji-Zuständen (idle, working, thinking, sleeping, error, offline), KanbanBoard für Notion Tasks (5 Spalten: inbox, To-do, In Bearbeitung, in Prüfen, Done), ActivityLog für Bot-Aktivitäten, NotesSection für Dashboard Notes, ScheduledJobs für Cron-Jobs Anzeige, CalendarEvents für Termine. Dark Theme mit Tailwind CSS 4.",
+        "testStrategy": "Visueller Test im Browser",
+        "subtasks": []
+      },
+      {
+        "id": 2,
+        "title": "PostgreSQL Integration",
+        "description": "Datenbankverbindung zu Moltbot PostgreSQL einrichten",
+        "status": "done",
+        "priority": "high",
+        "details": "DATABASE_URL konfiguriert in Coolify. Schema erstellt mit Tabellen: bot_status, activity_log, kanban_tasks, calendar_events, scheduled_jobs, dashboard_notes. Connection Pool in src/lib/db.ts implementiert.",
+        "testStrategy": "API Endpoints testen",
+        "subtasks": []
+      },
+      {
+        "id": 3,
+        "title": "Notion Sync",
+        "description": "Synchronisation von Notion Datenbanken nach PostgreSQL",
+        "status": "done",
+        "priority": "high",
+        "details": "API für Tasks aus 'Dali Aufgaben' (ID: 25b5e4b8-4c44-81d3-8693-d76df9877b9f). API für Events aus 'Events Calendar' (ID: 25b5e4b8-4c44-81b3-b503-c3e8875355a8). Sync Script für Notion → PostgreSQL.",
+        "testStrategy": "Notion Daten im Dashboard prüfen",
+        "subtasks": []
+      },
+      {
+        "id": 4,
+        "title": "React Hydration Error Fix",
+        "description": "Hydration Fehler bei Server/Client Rendering beheben",
+        "status": "done",
+        "priority": "medium",
+        "details": "Hydration-safe Time-Displays mit useEffect und useState implementiert. suppressHydrationWarning wo nötig hinzugefügt. Client-only Rendering für dynamische Inhalte.",
+        "testStrategy": "Console auf Hydration Warnings prüfen",
+        "subtasks": []
+      },
+      {
+        "id": 5,
+        "title": "OpenClaw WebSocket Integration",
+        "description": "Dashboard mit OpenClaw Gateway via WebSocket verbinden",
+        "status": "done",
+        "priority": "high",
+        "details": "WebSocket Client erstellt in src/lib/openclaw.ts. Jobs API holt Daten live via cron.list Methode. Status API holt Daten live via cron.status Methode. Keine statischen DB-Einträge mehr - alles live von OpenClaw! Protocol: {type:'req', id, method, params} → {type:'res', id, ok, payload}",
+        "testStrategy": "Jobs und Status im Dashboard prüfen",
+        "subtasks": []
+      },
+      {
+        "id": 6,
+        "title": "OpenClaw Tools Persistence",
+        "description": "Tools wie gog CLI nach Container-Neustart erhalten",
+        "status": "done",
+        "priority": "high",
+        "details": "Entrypoint Script erstellt für Container-Neustart (/root/.openclaw/bin/entrypoint.sh). gog CLI (Google Workspace) wird automatisch nach /usr/local/bin verlinkt. Dokumentiert in docs/OPENCLAW-SETUP.md.",
+        "testStrategy": "Container neustarten und gog CLI testen",
+        "subtasks": []
+      },
+      {
+        "id": 7,
+        "title": "Deploy & Test OpenClaw Integration",
+        "description": "Dashboard deployen und OpenClaw Integration testen",
+        "status": "in-progress",
+        "priority": "high",
+        "details": "OPENCLAW_WS_URL=ws://moltbot:18789 in Coolify setzen. Dashboard deployen. Testen ob Jobs live von OpenClaw geladen werden. Testen ob Status korrekt angezeigt wird (idle statt offline).",
+        "testStrategy": "Dashboard unter buddy.dexpert.io öffnen und Jobs/Status prüfen",
+        "subtasks": []
+      },
+      {
+        "id": 8,
+        "title": "Docs Tab Implementation",
+        "description": "Google Drive Integration für Dokumente",
+        "status": "pending",
+        "priority": "medium",
+        "details": "Google Drive Integration für Shared Drive 'Buddy' (Folder ID: 0ANQ_d6FC2U3BUk9PVA). Document Viewer mit Markdown Rendering. Sidebar mit Dokument-Liste und Suche.",
+        "testStrategy": "Docs Tab öffnen und Dokumente laden",
+        "subtasks": []
+      },
+      {
+        "id": 9,
+        "title": "Real-time Updates",
+        "description": "Live-Updates ohne Page Refresh",
+        "status": "pending",
+        "priority": "medium",
+        "details": "WebSocket Verbindung für Live-Updates im Dashboard. Status-Updates ohne Page Refresh. Job-Status Updates in Echtzeit wenn Jobs laufen.",
+        "testStrategy": "Job manuell starten und Status-Änderung beobachten",
+        "subtasks": []
+      },
+      {
+        "id": 10,
+        "title": "Activity Log von OpenClaw",
+        "description": "Historische Aktivitäten von OpenClaw abrufen",
+        "status": "pending",
+        "priority": "low",
+        "details": "Activity Log von OpenClaw Gateway abrufen. Historische Aktivitäten anzeigen. Gruppierung nach Datum im ActivityLog Komponente.",
+        "testStrategy": "Activity Log Tab prüfen",
+        "subtasks": []
+      }
+    ],
+    "metadata": {
+      "projectName": "Buddy Dashboard",
+      "version": "1.0.0",
+      "createdAt": "2026-01-31T04:00:00Z",
+      "updatedAt": "2026-01-31T04:00:00Z"
+    }
+  }
+}

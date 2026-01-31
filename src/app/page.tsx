@@ -9,6 +9,7 @@ import {
   ScheduledJobs,
   DocsViewer,
   UpcomingEvents,
+  ChatWindow,
 } from '@/components';
 import {
   BotState,
@@ -238,10 +239,12 @@ export default function Home() {
         <div className="max-w-7xl mx-auto">
           {activeTab === 'dashboard' && (
             <div className="flex gap-6">
-              {/* Left Sidebar - Status Panel + Upcoming Events */}
-              <aside className="shrink-0 space-y-6 w-[280px]">
+              {/* Left Sidebar - Status + Notes + Events + Jobs */}
+              <aside className="shrink-0 space-y-4 w-[280px]">
                 <StatusPanel botState={botState} />
+                <NotesSection notes={notes} onAddNote={handleAddNote} />
                 <UpcomingEvents events={events} onEventClick={handleEventClick} />
+                <ScheduledJobs jobs={jobs} />
               </aside>
 
               {/* Main Dashboard Content */}
@@ -249,11 +252,8 @@ export default function Home() {
                 {/* Kanban Board */}
                 <KanbanBoard tasks={tasks} onTaskClick={handleTaskClick} />
 
-                {/* Bottom Row: Scheduled + Notes */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <ScheduledJobs jobs={jobs} />
-                  <NotesSection notes={notes} onAddNote={handleAddNote} />
-                </div>
+                {/* Chat Window */}
+                <ChatWindow />
               </div>
             </div>
           )}

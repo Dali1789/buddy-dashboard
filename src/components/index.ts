@@ -5,3 +5,4 @@ export { default as NotesSection } from './NotesSection';
 export { default as ScheduledJobs } from './ScheduledJobs';
 export { default as DocsViewer } from './DocsViewer';
 export { default as UpcomingEvents } from './UpcomingEvents';
+export { default as ChatWindow } from './ChatWindow';

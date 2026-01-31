@@ -1,0 +1,112 @@
+# Buddy Dashboard - Product Requirements Document
+
+## Projekt-Übersicht
+Das Buddy Dashboard ist eine Web-Anwendung die den Status und die Aktivitäten von OpenClaw (AI Assistant) visualisiert.
+
+**Tech Stack:**
+- Next.js 16 (App Router)
+- React 19
+- TypeScript
+- Tailwind CSS 4
+- PostgreSQL (für lokale Daten)
+- WebSocket (für OpenClaw Kommunikation)
+
+**URLs:**
+- Dashboard: https://buddy.dexpert.io
+- OpenClaw Gateway: https://bot.dexpert.io (Port 18789)
+
+---
+
+## ERLEDIGTE AUFGABEN (Completed)
+
+### 1. Dashboard UI Komponenten [DONE]
+- StatusPanel mit Emoji-Zuständen (idle, working, thinking, sleeping, error, offline)
+- KanbanBoard für Notion Tasks (5 Spalten)
+- ActivityLog für Bot-Aktivitäten
+- NotesSection für Dashboard Notes
+- ScheduledJobs für Cron-Jobs Anzeige
+- CalendarEvents für Termine
+- Dark Theme mit Tailwind CSS
+
+### 2. PostgreSQL Integration [DONE]
+- Datenbankverbindung zu Moltbot PostgreSQL
+- Schema erstellt (bot_status, activity_log, kanban_tasks, calendar_events, scheduled_jobs)
+- DATABASE_URL konfiguriert in Coolify
+
+### 3. Notion Sync [DONE]
+- API für Tasks aus "Dali Aufgaben" Datenbank
+- API für Events aus "Events Calendar" Datenbank
+- Sync Script für Notion → PostgreSQL
+
+### 4. React Hydration Error Fix [DONE]
+- Hydration-safe Time-Displays implementiert
+- suppressHydrationWarning wo nötig
+
+### 5. OpenClaw WebSocket Integration [DONE]
+- WebSocket Client erstellt (src/lib/openclaw.ts)
+- Jobs API holt Daten live via cron.list
+- Status API holt Daten live via cron.status
+- Keine statischen DB-Einträge mehr - alles live!
+
+### 6. OpenClaw Tools Persistence [DONE]
+- Entrypoint Script erstellt für Container-Neustart
+- gog CLI (Google Workspace) wird automatisch verlinkt
+- Dokumentiert in docs/OPENCLAW-SETUP.md
+
+---
+
+## OFFENE AUFGABEN (Pending)
+
+### 7. Deploy & Test OpenClaw Integration [IN PROGRESS]
+- OPENCLAW_WS_URL Environment Variable in Coolify setzen
+- Dashboard deployen
+- Testen ob Jobs live von OpenClaw geladen werden
+- Testen ob Status korrekt angezeigt wird
+
+### 8. Docs Tab Implementation [PENDING]
+- Google Drive Integration für Shared Drive "Buddy"
+- Document Viewer mit Markdown Rendering
+- Sidebar mit Dokument-Liste und Suche
+
+### 9. Real-time Updates [PENDING]
+- WebSocket Verbindung für Live-Updates im Dashboard
+- Status-Updates ohne Page Refresh
+- Job-Status Updates in Echtzeit
+
+### 10. Activity Log von OpenClaw [PENDING]
+- Activity Log von OpenClaw Gateway abrufen
+- Historische Aktivitäten anzeigen
+- Gruppierung nach Datum
+
+---
+
+## Technische Details
+
+### Environment Variables (Coolify)
+```
+DATABASE_URL=postgresql://moltbot:xxx@moltbot_postrtres:5432/moltbot
+OPENCLAW_WS_URL=ws://moltbot:18789
+NOTION_API_KEY=ntn_xxx
+```
+
+### OpenClaw WebSocket Protocol
+- Request: {type:"req", id, method, params}
+- Response: {type:"res", id, ok, payload|error}
+- Methoden: cron.list, cron.status, sessions.list
+
+### Notion Datenbanken
+- Dali Aufgaben: 25b5e4b8-4c44-81d3-8693-d76df9877b9f
+- Events Calendar: 25b5e4b8-4c44-81b3-b503-c3e8875355a8
+
+---
+
+## Dateien
+
+### Wichtige Dateien
+- src/lib/openclaw.ts - WebSocket Client für OpenClaw
+- src/lib/db.ts - PostgreSQL Verbindung
+- src/app/api/jobs/route.ts - Jobs API (via OpenClaw)
+- src/app/api/status/route.ts - Status API (via OpenClaw)
+- src/components/StatusPanel.tsx - Bot Status Anzeige
+- src/components/ScheduledJobs.tsx - Cron Jobs Anzeige
+- docs/OPENCLAW-SETUP.md - Setup Dokumentation
