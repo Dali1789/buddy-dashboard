@@ -1,12 +1,11 @@
 import { NextResponse } from 'next/server';
-import { eventsDB } from '@/lib/db';
+import { getEventsFromNotion } from '@/lib/notion';
 
 // ============================================
-// CALENDAR API - PostgreSQL (von Moltbot synchronisiert)
+// CALENDAR API - NOTION DIRECT
 // ============================================
-// Das Dashboard zeigt Events, die Moltbot aus Notion
-// in die lokale PostgreSQL synchronisiert hat.
-// Moltbot ist für den Sync verantwortlich, nicht das Dashboard!
+// Das Dashboard liest jetzt direkt aus Notion
+// Gleiche Datenquelle wie der Bot!
 // ============================================
 
 export async function GET(request: Request) {
@@ -15,17 +14,19 @@ export async function GET(request: Request) {
     const days = parseInt(searchParams.get('days') || '14');
     const todayOnly = searchParams.get('today') === 'true';
 
+    const events = await getEventsFromNotion(todayOnly ? 1 : days);
+
     if (todayOnly) {
-      const events = await eventsDB.getToday();
-      return NextResponse.json(events);
+      const today = new Date().toISOString().split('T')[0];
+      const todayEvents = events.filter(e => e.date === today);
+      return NextResponse.json(todayEvents);
     }
 
-    const events = await eventsDB.getUpcoming(days);
     return NextResponse.json(events);
   } catch (error) {
-    console.error('Error fetching calendar events:', error);
+    console.error('Error fetching calendar events from Notion:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch calendar events' },
+      { error: 'Failed to fetch calendar events from Notion' },
       { status: 500 }
     );
   }

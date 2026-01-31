@@ -1,30 +1,21 @@
 import { NextResponse } from 'next/server';
-import { tasksDB } from '@/lib/db';
+import { getTasksFromNotion } from '@/lib/notion';
 
 // ============================================
-// TASKS API - READ ONLY
+// TASKS API - NOTION DIRECT
 // ============================================
-// Das Dashboard zeigt nur was Buddy in PostgreSQL gespeichert hat.
-// Änderungen erfolgen über Telegram Chat → Buddy → Notion → PostgreSQL
+// Das Dashboard liest jetzt direkt aus Notion
+// Gleiche Datenquelle wie der Bot!
 // ============================================
 
-export async function GET(request: Request) {
+export async function GET() {
   try {
-    const { searchParams } = new URL(request.url);
-    const status = searchParams.get('status');
-
-    let tasks;
-    if (status) {
-      tasks = await tasksDB.getByStatus(status);
-    } else {
-      tasks = await tasksDB.getAll();
-    }
-
+    const tasks = await getTasksFromNotion();
     return NextResponse.json(tasks);
   } catch (error) {
-    console.error('Error fetching tasks:', error);
+    console.error('Error fetching tasks from Notion:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch tasks' },
+      { error: 'Failed to fetch tasks from Notion' },
       { status: 500 }
     );
   }
