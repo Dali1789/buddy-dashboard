@@ -71,7 +71,7 @@ export default function ChatWindow() {
   // Render iframe version (embedded OpenClaw WebChat)
   if (useIframe) {
     return (
-      <div className="card p-4 h-[800px] flex flex-col">
+      <div className="card p-4 flex flex-col flex-1 min-h-[400px]">
         {/* Header */}
         <div className="flex items-center justify-between mb-3">
           <div>
@@ -111,7 +111,7 @@ export default function ChatWindow() {
 
   // Render minimal chat version
   return (
-    <div className="card p-4 h-[800px] flex flex-col">
+    <div className="card p-4 flex flex-col flex-1 min-h-[400px]">
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <div>

@@ -238,9 +238,9 @@ export default function Home() {
       <main className="flex-1 px-6 py-6">
         <div className="max-w-7xl mx-auto">
           {activeTab === 'dashboard' && (
-            <div className="flex gap-6">
+            <div className="flex gap-6 items-stretch">
               {/* Left Sidebar - Status + Notes + Events + Jobs */}
-              <aside className="shrink-0 space-y-4 w-[280px]">
+              <aside className="shrink-0 flex flex-col gap-4 w-[280px]">
                 <StatusPanel botState={botState} />
                 <NotesSection notes={notes} onAddNote={handleAddNote} />
                 <UpcomingEvents events={events} onEventClick={handleEventClick} />
@@ -248,11 +248,11 @@ export default function Home() {
               </aside>
 
               {/* Main Dashboard Content */}
-              <div className="flex-1 space-y-6">
+              <div className="flex-1 flex flex-col gap-6">
                 {/* Kanban Board */}
                 <KanbanBoard tasks={tasks} onTaskClick={handleTaskClick} />
 
-                {/* Chat Window */}
+                {/* Chat Window - stretches to fill remaining space */}
                 <ChatWindow />
               </div>
             </div>
