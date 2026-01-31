@@ -11,7 +11,9 @@ import WebSocket from 'ws';
 // Use IP address directly since container hostname DNS doesn't work cross-network
 // Can be overridden via OPENCLAW_WS_URL env var
 const OPENCLAW_WS_URL = process.env.OPENCLAW_WS_URL || 'ws://10.0.5.2:18789';
-const OPENCLAW_TOKEN = process.env.OPENCLAW_GATEWAY_TOKEN || '';
+// Gateway token for authentication - should be set via OPENCLAW_GATEWAY_TOKEN env var
+// TODO: Move to Coolify environment variables
+const OPENCLAW_TOKEN = process.env.OPENCLAW_GATEWAY_TOKEN || 'd405662297a58df924f621a74a491cc48abbcc421550402ef6cb2fe9fc397b94';
 
 interface OpenClawRequest {
   type: 'req';
