@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 // Routes that don't require authentication
-const PUBLIC_ROUTES = ['/login', '/api/auth'];
+// Note: /api/status, /api/activity, /api/heartbeat are public for Moltbot to call
+const PUBLIC_ROUTES = ['/login', '/api/auth', '/api/status', '/api/activity', '/api/heartbeat', '/api/jobs'];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
