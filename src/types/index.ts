@@ -20,8 +20,8 @@ export interface BotState {
 export type NotionTaskStatus = 'inbox' | 'To-do' | 'In Bearbeitung' | 'in Prüfen' | 'Done';
 export type TaskPriority = 'low' | 'medium' | 'high' | 'urgent';
 
-// Dashboard column IDs (includes virtual 'overdue' column)
-export type KanbanColumnId = NotionTaskStatus | 'overdue';
+// Priority-based Kanban columns (Eisenhower Matrix)
+export type KanbanColumnId = 'do-now' | 'deep-work' | 'low' | 'overdue';
 
 export interface KanbanTask {
   id: string;
@@ -41,13 +41,12 @@ export interface KanbanTask {
   completedAt?: string;
 }
 
-// Kanban Column Mapping - OVERDUE replaces IN REVIEW
-export const KANBAN_COLUMNS: { id: KanbanColumnId; label: string; isVirtual?: boolean }[] = [
-  { id: 'inbox', label: 'INBOX' },
-  { id: 'To-do', label: 'TO DO' },
-  { id: 'In Bearbeitung', label: 'IN PROGRESS' },
-  { id: 'overdue', label: 'OVERDUE', isVirtual: true },
-  { id: 'Done', label: 'DONE' },
+// Kanban Columns by Priority
+export const KANBAN_COLUMNS: { id: KanbanColumnId; label: string; description: string }[] = [
+  { id: 'do-now', label: 'DO NOW', description: 'Wichtig + Dringend' },
+  { id: 'deep-work', label: 'DEEP WORK', description: 'Wichtig' },
+  { id: 'low', label: 'LOW', description: 'Später' },
+  { id: 'overdue', label: 'OVERDUE', description: 'Überfällig' },
 ];
 
 // Activity Log Types
