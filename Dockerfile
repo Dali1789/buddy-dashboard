@@ -24,6 +24,8 @@ RUN adduser --system --uid 1001 nextjs
 COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+# Copy ws package for WebSocket support (not traced by Next.js standalone)
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/ws ./node_modules/ws
 
 USER nextjs
 

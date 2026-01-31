@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
-import { botStatusDB, jobsDB } from '@/lib/db';
+import { botStatusDB } from '@/lib/db';
 import { BotState } from '@/types';
 
 // ============================================
-// BOT STATUS API - PostgreSQL
+// BOT STATUS API - PostgreSQL Integration
 // ============================================
-// GET: Holt Status aus der PostgreSQL Datenbank
-// PUT: Aktualisiert Heartbeat
+// GET: Dashboard ruft aktuellen Bot-Status ab
+// POST: Moltbot aktualisiert seinen Status (bei Heartbeat)
 // ============================================
 
 // Fallback state wenn DB nicht erreichbar
@@ -20,40 +20,49 @@ const OFFLINE_STATE: BotState = {
 
 export async function GET() {
   try {
-    // Get status from PostgreSQL
-    const status = await botStatusDB.get();
+    const botState = await botStatusDB.get();
 
-    if (!status) {
+    if (!botState) {
       return NextResponse.json(OFFLINE_STATE);
     }
 
-    return NextResponse.json(status);
+    return NextResponse.json(botState);
   } catch (error) {
-    console.error('Error fetching bot status from database:', error);
+    console.error('Error fetching bot status:', error);
+    // Return offline state instead of error to keep dashboard working
     return NextResponse.json(OFFLINE_STATE);
   }
 }
 
-// Heartbeat check / update
+export async function POST(request: Request) {
+  try {
+    const body = await request.json();
+
+    await botStatusDB.update({
+      status: body.status,
+      currentTask: body.currentTask,
+      subAgents: body.subAgents,
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('Error updating bot status:', error);
+    return NextResponse.json(
+      { error: 'Failed to update bot status' },
+      { status: 500 }
+    );
+  }
+}
+
+// Heartbeat endpoint - für Moltbot Cron
 export async function PUT() {
   try {
-    // Update heartbeat in database
     await botStatusDB.heartbeat();
-
-    // Get job count
-    const jobs = await jobsDB.getAll();
-    const enabledJobs = jobs.filter(j => j.enabled);
-
-    return NextResponse.json({
-      success: true,
-      timestamp: new Date().toISOString(),
-      schedulerEnabled: enabledJobs.length > 0,
-      jobCount: enabledJobs.length,
-    });
+    return NextResponse.json({ success: true, timestamp: new Date().toISOString() });
   } catch (error) {
-    console.error('Error updating heartbeat:', error);
+    console.error('Error processing heartbeat:', error);
     return NextResponse.json(
-      { error: 'Failed to update heartbeat' },
+      { error: 'Failed to process heartbeat' },
       { status: 500 }
     );
   }
