@@ -7,8 +7,9 @@ import WebSocket from 'ws';
 // Protocol: JSON frames {type, id, method, params}
 // ============================================
 
-// Default to Coolify container name - can be overridden via OPENCLAW_WS_URL
-const OPENCLAW_WS_URL = process.env.OPENCLAW_WS_URL || 'ws://moltbot-rkgsk04koscwocw4wcw4sgg0:18789';
+// Use IP address directly since container hostname DNS doesn't work cross-network
+// Can be overridden via OPENCLAW_WS_URL env var
+const OPENCLAW_WS_URL = process.env.OPENCLAW_WS_URL || 'ws://10.0.5.2:18789';
 
 interface OpenClawRequest {
   type: 'req';
