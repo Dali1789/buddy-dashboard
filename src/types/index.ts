@@ -69,23 +69,15 @@ export interface ActivityEntry {
   timestamp: string;
 }
 
-// Notes Types (Synced with Notion - filtered by "Buddy" tag)
+// Notes Types (Local PostgreSQL - checked by Moltbot on heartbeat)
 export interface DashboardNote {
   id: string;
-  notionId?: string;
   content: string;
-  tags: string[];
   createdAt: string;
   seenAt?: string;
   seenByBot: boolean;
   response?: string;
 }
-
-// Notion Notes Database Configuration
-export const NOTION_NOTES_CONFIG = {
-  // Notes müssen den "Buddy" Tag haben um im Dashboard zu erscheinen
-  requiredTag: 'Buddy',
-};
 
 // Docs Types
 export type DocumentType = 'markdown' | 'pdf' | 'report' | 'guide' | 'reference' | 'ai_pulse';

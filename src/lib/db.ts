@@ -260,29 +260,25 @@ export const activityDB = {
   },
 };
 
-// Dashboard Notes
+// Dashboard Notes (Local - checked by Moltbot on heartbeat)
 export const notesDB = {
   async getAll(): Promise<DashboardNote[]> {
     const { rows } = await query<{
       id: string;
-      notion_id: string;
       content: string;
-      tags: string[];
       created_at: Date;
       seen_at: Date | null;
       seen_by_bot: boolean;
       bot_response: string | null;
     }>(
-      `SELECT * FROM dashboard_notes
-       WHERE 'Buddy' = ANY(tags)
+      `SELECT id, content, created_at, seen_at, seen_by_bot, bot_response
+       FROM dashboard_notes
        ORDER BY created_at DESC`
     );
 
     return rows.map((row) => ({
       id: row.id,
-      notionId: row.notion_id,
       content: row.content,
-      tags: row.tags,
       createdAt: row.created_at.toISOString(),
       seenAt: row.seen_at?.toISOString(),
       seenByBot: row.seen_by_bot,
@@ -290,27 +286,23 @@ export const notesDB = {
     }));
   },
 
-  async create(content: string, notionId?: string, tags: string[] = ['Buddy']): Promise<DashboardNote> {
+  async create(content: string): Promise<DashboardNote> {
     const { rows } = await query<{
       id: string;
-      notion_id: string;
       content: string;
-      tags: string[];
       created_at: Date;
       seen_by_bot: boolean;
     }>(
-      `INSERT INTO dashboard_notes (content, notion_id, tags)
-       VALUES ($1, $2, $3)
-       RETURNING *`,
-      [content, notionId, tags]
+      `INSERT INTO dashboard_notes (content)
+       VALUES ($1)
+       RETURNING id, content, created_at, seen_by_bot`,
+      [content]
     );
 
     const row = rows[0];
     return {
       id: row.id,
-      notionId: row.notion_id,
       content: row.content,
-      tags: row.tags,
       createdAt: row.created_at.toISOString(),
       seenByBot: row.seen_by_bot,
     };
@@ -320,7 +312,7 @@ export const notesDB = {
     await query(
       `UPDATE dashboard_notes
        SET seen_by_bot = TRUE, seen_at = NOW(), bot_response = $2
-       WHERE id = $1 OR notion_id = $1`,
+       WHERE id = $1`,
       [id, response]
     );
   },

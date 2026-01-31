@@ -2,11 +2,9 @@ import { NextResponse } from 'next/server';
 import { notesDB } from '@/lib/db';
 
 // ============================================
-// NOTES API - PostgreSQL (von Moltbot synchronisiert)
+// NOTES API - Local PostgreSQL
 // ============================================
-// Das Dashboard zeigt Notes, die Moltbot aus Notion
-// in die lokale PostgreSQL synchronisiert hat.
-// Notes mit #Buddy Tag werden von Moltbot erkannt und hier angezeigt.
+// Notes are stored locally. Moltbot checks on every heartbeat.
 // ============================================
 
 export async function GET() {
@@ -22,7 +20,7 @@ export async function GET() {
   }
 }
 
-// Neue Note erstellen (vom Dashboard - wird von Moltbot gesehen)
+// Create new note
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -34,14 +32,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // Note in lokaler DB erstellen
-    // Moltbot synchronisiert diese später zu Notion
-    const newNote = await notesDB.create(
-      body.content,
-      undefined, // notionId wird später von Moltbot gesetzt
-      body.tags || ['Buddy']
-    );
-
+    const newNote = await notesDB.create(body.content);
     return NextResponse.json(newNote, { status: 201 });
   } catch (error) {
     console.error('Error creating note:', error);
@@ -52,7 +43,7 @@ export async function POST(request: Request) {
   }
 }
 
-// Note als gesehen markieren (von Moltbot aufgerufen)
+// Mark note as seen (called by Moltbot on heartbeat)
 export async function PUT(request: Request) {
   try {
     const body = await request.json();
@@ -66,7 +57,6 @@ export async function PUT(request: Request) {
     }
 
     await notesDB.markSeen(id, response);
-
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error updating note:', error);

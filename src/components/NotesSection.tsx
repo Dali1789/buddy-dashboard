@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { DashboardNote, NOTION_NOTES_CONFIG } from '@/types';
+import { DashboardNote } from '@/types';
 
 interface NotesSectionProps {
   notes: DashboardNote[];
@@ -23,31 +23,18 @@ function NoteCard({ note }: { note: DashboardNote }) {
       {/* Note Content */}
       <p className="text-sm text-zinc-300 mb-2">{note.content}</p>
 
-      {/* Tags */}
-      {note.tags && note.tags.length > 0 && (
-        <div className="flex flex-wrap gap-1 mb-2">
-          {note.tags.map((tag) => (
-            <span
-              key={tag}
-              className={`text-xs px-1.5 py-0.5 rounded ${
-                tag === NOTION_NOTES_CONFIG.requiredTag
-                  ? 'bg-blue-500/20 text-blue-400'
-                  : 'bg-zinc-700 text-zinc-400'
-              }`}
-            >
-              {tag}
-            </span>
-          ))}
-        </div>
-      )}
-
       {/* Meta Info */}
       <div className="flex items-center justify-between text-xs">
         <span className="text-zinc-500">{formatTimestamp(note.createdAt)}</span>
-        {note.seenByBot && (
+        {note.seenByBot ? (
           <span className="text-green-400 flex items-center gap-1">
             <span className="w-1.5 h-1.5 rounded-full bg-green-400" />
             seen by Moltbot
+          </span>
+        ) : (
+          <span className="text-yellow-400 flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 animate-pulse" />
+            pending
           </span>
         )}
       </div>
@@ -56,7 +43,7 @@ function NoteCard({ note }: { note: DashboardNote }) {
       {note.response && (
         <div className="mt-3 pt-3 border-t border-zinc-700">
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-xs text-zinc-500">Moltbot&apos;s response:</span>
+            <span className="text-xs text-zinc-500">Moltbot:</span>
           </div>
           <p className="text-sm text-zinc-400 italic">{note.response}</p>
         </div>
@@ -88,22 +75,14 @@ export default function NotesSection({ notes, onAddNote }: NotesSectionProps) {
     }
   };
 
-  // Filter notes that have the "Buddy" tag
-  const filteredNotes = notes.filter((note) =>
-    note.tags?.includes(NOTION_NOTES_CONFIG.requiredTag)
-  );
-
   return (
     <div className="card p-4">
       {/* Header */}
-      <div className="flex items-center justify-between mb-1">
-        <h3 className="text-sm font-medium text-zinc-400">Notes</h3>
-        <span className="text-xs text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded">
-          #{NOTION_NOTES_CONFIG.requiredTag}
-        </span>
+      <div className="mb-1">
+        <h3 className="text-sm font-medium text-zinc-400">Notes for Moltbot</h3>
       </div>
       <p className="text-xs text-zinc-500 mb-4">
-        Moltbot checks on every heartbeat (synced with Notion)
+        Moltbot checks on every heartbeat
       </p>
 
       {/* Input */}
@@ -113,7 +92,7 @@ export default function NotesSection({ notes, onAddNote }: NotesSectionProps) {
           value={newNote}
           onChange={(e) => setNewNote(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Type a note..."
+          placeholder="Leave a note for Moltbot..."
           disabled={isSubmitting}
           className="flex-1 bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-zinc-600 disabled:opacity-50"
         />
@@ -126,28 +105,22 @@ export default function NotesSection({ notes, onAddNote }: NotesSectionProps) {
         </button>
       </div>
 
-      {/* Info about tag */}
-      <div className="text-xs text-zinc-600 mb-3 bg-zinc-800/50 rounded p-2">
-        Notes werden automatisch mit #{NOTION_NOTES_CONFIG.requiredTag} Tag in Notion erstellt
-      </div>
-
       {/* Notes List */}
       <div className="space-y-2 max-h-[300px] overflow-y-auto">
-        {filteredNotes.length > 0 ? (
-          filteredNotes
+        {notes.length > 0 ? (
+          notes
             .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
             .map((note) => <NoteCard key={note.id} note={note} />)
         ) : (
           <div className="text-xs text-zinc-600 text-center py-4">
-            Keine Notes mit #{NOTION_NOTES_CONFIG.requiredTag} Tag. Erstelle eine Note für Moltbot!
+            No notes yet. Leave a message for Moltbot!
           </div>
         )}
       </div>
 
-      {/* Notion Sync Status */}
-      <div className="mt-3 pt-3 border-t border-zinc-800 text-xs text-zinc-600 flex items-center justify-between">
-        <span>Synced with Notion</span>
-        <span>Filter: #{NOTION_NOTES_CONFIG.requiredTag}</span>
+      {/* Status */}
+      <div className="mt-3 pt-3 border-t border-zinc-800 text-xs text-zinc-600">
+        Stored locally in PostgreSQL
       </div>
     </div>
   );
