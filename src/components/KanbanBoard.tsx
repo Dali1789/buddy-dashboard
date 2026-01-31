@@ -48,54 +48,42 @@ function formatDueDate(date?: string): { text: string; isOverdue: boolean; isSoo
 
 function TaskCard({ task, onClick }: { task: KanbanTask; onClick?: () => void }) {
   const priorityColor = getPriorityColor(task.wichtig, task.dringend);
-  const priorityLabel = getPriorityLabel(task.wichtig, task.dringend);
   const dueInfo = formatDueDate(task.dueDate);
 
   return (
     <div
       onClick={onClick}
-      className="bg-zinc-800 rounded-lg p-3 cursor-pointer hover:bg-zinc-750 transition-colors border border-zinc-700 hover:border-zinc-600"
+      className="bg-zinc-800 rounded-md p-2 cursor-pointer hover:bg-zinc-750 transition-colors border border-zinc-700 hover:border-zinc-600"
     >
-      {/* Priority Indicator */}
-      <div className="flex items-center gap-2 mb-2">
-        <span className={`w-2 h-2 rounded-full ${priorityColor}`} />
-        <span className="text-xs text-zinc-500">{priorityLabel}</span>
+      {/* Task Title with Priority Dot */}
+      <div className="flex items-start gap-2">
+        <span className={`w-2 h-2 rounded-full ${priorityColor} mt-1 shrink-0`} />
+        <h4 className="text-xs font-medium text-white line-clamp-2 leading-tight">
+          {task.title}
+        </h4>
       </div>
 
-      {/* Task Title */}
-      <h4 className="text-sm font-medium text-white mb-2 line-clamp-2">
-        {task.title}
-      </h4>
-
-      {/* Meta Info */}
-      <div className="flex items-center justify-between text-xs">
-        {/* Due Date */}
-        {dueInfo.text && (
-          <span
-            className={`${
-              dueInfo.isOverdue
-                ? 'text-red-400'
-                : dueInfo.isSoon
-                ? 'text-yellow-400'
-                : 'text-zinc-500'
-            }`}
-          >
-            {dueInfo.text}
-          </span>
-        )}
-
-        {/* Bereich/Category */}
-        {task.bereich && (
-          <span className="text-zinc-600 bg-zinc-700/50 px-1.5 py-0.5 rounded">
-            {task.bereich}
-          </span>
-        )}
-      </div>
-
-      {/* Sub-tasks indicator */}
-      {task.subTasks && task.subTasks.length > 0 && (
-        <div className="mt-2 text-xs text-zinc-500">
-          {task.subTasks.length} sub-task{task.subTasks.length > 1 ? 's' : ''}
+      {/* Meta Info (compact) */}
+      {(dueInfo.text || task.bereich) && (
+        <div className="flex items-center justify-between text-[10px] mt-1.5 pl-4">
+          {dueInfo.text && (
+            <span
+              className={`${
+                dueInfo.isOverdue
+                  ? 'text-red-400'
+                  : dueInfo.isSoon
+                  ? 'text-yellow-400'
+                  : 'text-zinc-500'
+              }`}
+            >
+              {dueInfo.text}
+            </span>
+          )}
+          {task.bereich && (
+            <span className="text-zinc-600 truncate max-w-[80px]">
+              {task.bereich}
+            </span>
+          )}
         </div>
       )}
     </div>
@@ -127,8 +115,8 @@ function KanbanColumn({
           </span>
         </div>
 
-        {/* Tasks */}
-        <div className="space-y-2 min-h-24">
+        {/* Tasks - Max 10 visible, rest scrollable */}
+        <div className="space-y-1.5 min-h-20 max-h-105 overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-transparent pr-1">
           {columnTasks.length > 0 ? (
             columnTasks.map((task) => (
               <TaskCard
