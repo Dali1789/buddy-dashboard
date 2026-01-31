@@ -17,6 +17,11 @@ const TYPE_CONFIG: Record<ActivityType, { color: string; icon: string }> = {
   error: { color: 'bg-red-500', icon: '❌' },
   note_seen: { color: 'bg-cyan-500', icon: '👁️' },
   notion_sync: { color: 'bg-indigo-500', icon: '🔄' },
+  // Session tracking types
+  job_start: { color: 'bg-blue-600', icon: '▶️' },
+  job_end: { color: 'bg-blue-400', icon: '⏹️' },
+  thinking: { color: 'bg-yellow-500', icon: '🤔' },
+  action: { color: 'bg-teal-500', icon: '⚡' },
 };
 
 function formatTime(timestamp: string): string {
